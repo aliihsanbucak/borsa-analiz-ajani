@@ -1,0 +1,10 @@
+symbols:
+  bist: [THYAO.IS, ASELS.IS, SISE.IS]
+  us: [AAPL, MSFT, NVDA]
+  crypto: [bitcoin, ethereum, solana]   # CoinGecko id'leri kullanılır, ticker sembolü değil
+
+telegram:
+  bot_token: "PASTE_YOUR_BOT_TOKEN_HERE"
+  chat_id: "PASTE_YOUR_CHAT_ID_HERE"
+
+run_time: "08:45"   # bilgi amaçlı; asıl zamanlama Claude Code zamanlanmış rutini ile tutulur
