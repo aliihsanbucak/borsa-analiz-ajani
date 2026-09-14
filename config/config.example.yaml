@@ -1,10 +1,41 @@
 symbols:
-  bist: [THYAO.IS, ASELS.IS, SISE.IS]
-  us: [AAPL, MSFT, NVDA]
-  crypto: [bitcoin, ethereum, solana]   # CoinGecko id'leri kullanılır, ticker sembolü değil
+  # BIST100 (best-effort liste - endeks bileşimi periyodik olarak değişir,
+  # zaman zaman kontrol edin: https://www.borsaistanbul.com). Yanlış/eski
+  # bir sembol pipeline'ı bozmaz, sadece "veri alınamadı" ile atlanır.
+  bist:
+    [AKBNK.IS, GARAN.IS, ISCTR.IS, YKBNK.IS, VAKBN.IS, HALKB.IS, TSKB.IS, SKBNK.IS, ICBCT.IS,
+     SAHOL.IS, KCHOL.IS, DOHOL.IS, AGHOL.IS, ALARK.IS, ENKAI.IS, TKFEN.IS,
+     SISE.IS, EREGL.IS, KRDMD.IS, TUPRS.IS, PETKM.IS, SASA.IS, HEKTS.IS, GUBRF.IS, AKSA.IS, AKCNS.IS, CIMSA.IS, BUCIM.IS, GOLTS.IS, NUHCM.IS,
+     THYAO.IS, PGSUS.IS, TAVHL.IS, DOAS.IS,
+     OTKAR.IS, TOASO.IS, FROTO.IS, KARSN.IS, TTRAK.IS,
+     ASELS.IS,
+     BIMAS.IS, MGROS.IS, SOKM.IS, VESTL.IS, ARCLK.IS, ULKER.IS, CCOLA.IS, TATGD.IS, MAVI.IS, YATAS.IS,
+     TCELL.IS, TTKOM.IS, NETAS.IS, LOGO.IS,
+     EKGYO.IS, ISGYO.IS, SNGYO.IS, TRGYO.IS,
+     KOZAL.IS, KOZAA.IS,
+     ANHYT.IS, ANSGR.IS, TURSG.IS,
+     ISMEN.IS,
+     ASTOR.IS, AYGAZ.IS, ENJSA.IS, ZOREN.IS, AKSEN.IS, ODAS.IS, CWENE.IS, GWIND.IS, ALFAS.IS,
+     EUPWR.IS, YEOTK.IS, MIATK.IS,
+     BRSAN.IS, BRISA.IS, KORDS.IS, CEMTS.IS, KLMSN.IS, KMPUR.IS, PARSN.IS, TMSN.IS, IZMDC.IS, KARTN.IS,
+     MPARK.IS, VESBE.IS,
+     PENTA.IS, POLHO.IS, ISDMR.IS,
+     EGEEN.IS, ECILC.IS, BAGFS.IS,
+     KONTR.IS, OYAKC.IS, GESAN.IS, ALKIM.IS, SELEC.IS, BERA.IS]
+
+  # ABD - piyasa değerine göre yaklaşık en büyük 30 şirket (best-effort,
+  # sıralama zamanla değişir - periyodik kontrol edin)
+  us:
+    [AAPL, MSFT, NVDA, GOOGL, AMZN, META, BRK-B, AVGO, TSLA, LLY,
+     JPM, V, UNH, WMT, MA, XOM, JNJ, PG, COST, ORCL,
+     HD, NFLX, BAC, ABBV, CVX, CRM, AMD, KO, MRK, PEP]
+
+  crypto_count: 50   # src/data_crypto.py'deki CURATED_TOP_COINS (elle seçilmiş, tanınan kripto paralar) listesinden ilk N tanesi - CoinGecko'nun ham piyasa değeri sıralaması artık kullanılmıyor (stablecoin/RWA-fonu/borsa-token'ı gibi "kripto para" olmayan şeyleri de içerebiliyordu)
 
 telegram:
   bot_token: "PASTE_YOUR_BOT_TOKEN_HERE"
   chat_id: "PASTE_YOUR_CHAT_ID_HERE"
 
-run_time: "08:45"   # bilgi amaçlı; asıl zamanlama Claude Code zamanlanmış rutini ile tutulur
+top_n_report: 30   # gunluk raporda detayli gosterilecek, en yuksek puanli sembol sayisi
+
+run_time: "11:00"   # bilgi amaçlı; asıl zamanlama Windows Task Scheduler (BorsaAnalizAjani gorevi) ile tutulur

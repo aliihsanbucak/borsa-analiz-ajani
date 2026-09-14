@@ -21,9 +21,13 @@ def load_config(path: str | Path) -> dict:
             raise ValueError(f"config.yaml içinde '{key}' bölümü eksik.")
 
     symbols = config["symbols"]
-    total_symbols = sum(len(symbols.get(market, [])) for market in ("bist", "us", "crypto"))
+    total_symbols = (
+        len(symbols.get("bist", []))
+        + len(symbols.get("us", []))
+        + symbols.get("crypto_count", 0)
+    )
     if total_symbols == 0:
-        raise ValueError("config.yaml içinde en az bir sembol tanımlanmalı (symbols.bist/us/crypto).")
+        raise ValueError("config.yaml içinde en az bir sembol tanımlanmalı (symbols.bist/us/crypto_count).")
 
     telegram = config["telegram"]
     if not telegram.get("bot_token") or not telegram.get("chat_id"):
