@@ -1,5 +1,6 @@
 ﻿$ErrorActionPreference = "Continue"
-$ProjectDir = "C:\Users\Ali İhsan Bucak\borsa-analiz-ajani"
+# Script kendi bulundugu klasoru kullanir; makineden makineye tasininca kirilmaz.
+$ProjectDir = $PSScriptRoot
 
 # En erken canary log yazimi - Task Scheduler'in konsolsuz/etkilesimsiz
 # ortaminda asagidaki konsol kodlama ayarlari sessizce process'i
