@@ -27,6 +27,16 @@ $env:Path += ";C:\Program Files\nodejs;$env:APPDATA\npm"
 
 # 1. Veri pipeline'ini calistir (teknik/temel/oruntu JSON bundle uretir) - relative yollarla
 & ".\.venv\Scripts\python.exe" "src\data_pipeline.py" *>> $WrapperLog
+$PipelineExit = $LASTEXITCODE
+
+# Cikis kodu 2 = pipeline bugun icin daha saglam bir bundle buldu ve bozuk sonucun
+# uzerine yazmayi reddetti. Bundle dosyasi VAR ama eski/iyi olani; devam edersek
+# ayni raporu ikinci kez gondeririz. Diger sifir disi kodlar da gercek arizadir.
+if ($PipelineExit -ne 0) {
+    "HATA: Veri pipeline'i $PipelineExit kodu ile cikti; rapor uretilmeyecek." | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    "=== Calisma bitti (pipeline hatasi): $(Get-Date) ===" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    exit $PipelineExit
+}
 
 $BundlePath = Join-Path $ProjectDir "logs\bundle_$Today.json"
 $ReportPath = Join-Path $ProjectDir "logs\rapor_$Today.txt"

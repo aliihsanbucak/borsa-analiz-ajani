@@ -280,11 +280,52 @@ def build_bundle(config_path: str | Path) -> dict:
     }
 
 
+# Bir calismada sembollerin bu orandan fazlasi hata verirse (tipik sebep: gecici
+# DNS/ag arizasi, veri saglayici rate-limit) uretilen bundle piyasayi degil arizayi
+# yansitir. 15 Eylul 2026'da 02:19'daki saglam calismanin ustune 18:23'teki %93
+# hatali calisma yazdi ve o gunun verisi kayboldu.
+MAX_ERROR_RATE = 0.50
+
+
+def _error_rate(bundle: dict) -> float:
+    total = bundle.get("universe_size") or 0
+    if not total:
+        return 1.0
+    return (bundle.get("errored_symbol_count") or 0) / total
+
+
 def main():
     config_path = sys.argv[1] if len(sys.argv) > 1 else PROJECT_ROOT / "config" / "config.yaml"
     bundle = build_bundle(config_path)
 
     output_path = LOG_DIR / f"bundle_{date.today().isoformat()}.json"
+    rate = _error_rate(bundle)
+
+    if rate > MAX_ERROR_RATE and output_path.exists():
+        try:
+            with open(output_path, encoding="utf-8") as f:
+                existing_rate = _error_rate(json.load(f))
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning(f"Mevcut bundle okunamadi, uzerine yaziliyor: {exc}")
+            existing_rate = 1.0
+
+        if existing_rate <= rate:
+            degraded_path = output_path.with_suffix(".degraded.json")
+            with open(degraded_path, "w", encoding="utf-8") as f:
+                json.dump(bundle, f, ensure_ascii=False, indent=2)
+            logger.error(
+                f"Bu calismada sembollerin %{rate * 100:.0f}'i hata verdi; bugun icin "
+                f"zaten daha saglam bir bundle var (%{existing_rate * 100:.0f} hata). "
+                f"Mevcut dosya KORUNDU, bozuk sonuc {degraded_path} altina yazildi."
+            )
+            sys.exit(2)
+
+    if rate > MAX_ERROR_RATE:
+        logger.warning(
+            f"Sembollerin %{rate * 100:.0f}'i hata verdi - bundle yine de yaziliyor "
+            "(bugun icin karsilastirilacak onceki bir calisma yok)."
+        )
+
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(bundle, f, ensure_ascii=False, indent=2)
 

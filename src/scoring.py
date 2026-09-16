@@ -123,9 +123,14 @@ def crypto_score(pattern_result: dict | None, market_cap_rank: int | None) -> fl
         rank_component = _clamp((51 - market_cap_rank) / 50)
         components.append((rank_component, 0.4))
 
-    if not components:
+    total_weight = sum(w for _, w in components)
+    if len(components) < MIN_COMPONENT_COUNT or total_weight < MIN_TOTAL_WEIGHT:
+        # stock_score ile ayni koruma: tek bilesen kalirsa (tipik olarak veri
+        # saglayici arizasinda piyasa degeri gelmeyince) skor tamamen gecmis
+        # oruntu getirisine dusuyor ve siralama "en dikkat cekici coinler" gibi
+        # gorunurken aslinda 4-5 orneklik bir istatistigin siralamasi oluyor.
+        # Yanlis yuksek bir skor uretmektense hic uretme.
         return None
 
-    total_weight = sum(w for _, w in components)
     score = sum(v * w for v, w in components) / total_weight
     return round(score, 4)
