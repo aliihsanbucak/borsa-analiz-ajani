@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = "Continue"
+$ErrorActionPreference = "Continue"
 # Script kendi bulundugu klasoru kullanir; makineden makineye tasininca kirilmaz.
 $ProjectDir = $PSScriptRoot
 
@@ -13,6 +13,25 @@ if (-not (Test-Path $LogDir)) { New-Item -ItemType Directory -Path $LogDir -Forc
 $WrapperLog = Join-Path $LogDir "wrapper_$Today.log"
 "=== Calisma basladi: $(Get-Date) ===" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
 
+# Gorev powershell.exe (PS 5.1) ile calisiyor; orada "*>>" yonlendirmesi varsayilan
+# olarak UTF-16LE yazar. Wrapper logu UTF-8 baslayip claude ciktisindan sonra
+# okunamaz hale geliyordu (grep dosyayi ikili sanip pes ediyordu).
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
+
+# Ariza sessiz kalmasin: rapor uretilemeyen her cikista Telegram'a kisa bir not
+# birak. En iyi caba - gonderilemezse loglanir, asil cikis kodu bozulmaz.
+function Send-ArizaUyarisi([string]$Mesaj) {
+    "ARIZA UYARISI: $Mesaj" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    try {
+        $PyYolu = Join-Path $ProjectDir ".venv\Scripts\python.exe"
+        $AlertYolu = Join-Path $ProjectDir "src\send_alert.py"
+        & $PyYolu $AlertYolu $Mesaj *>> $WrapperLog
+    } catch {
+        "UYARI: Ariza bildirimi gonderilemedi: $($_.Exception.Message)" |
+            Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    }
+}
+
 try {
     chcp 65001 | Out-Null
     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -25,6 +44,42 @@ try {
 Set-Location $ProjectDir
 $env:Path += ";C:\Program Files\nodejs;$env:APPDATA\npm"
 
+# --- NETWORK_READY_WAIT_BEGIN ---
+# StartWhenAvailable, bilgisayar acilir acilmaz gorevi baslatabilir. Windows'un
+# "ag var" sinyali DNS ve internetin gercekten hazir oldugu anlamina gelmez.
+$NetworkHost = "query2.finance.yahoo.com"
+$NetworkWaitLimit = [TimeSpan]::FromMinutes(15)
+$NetworkRetrySeconds = 20
+$NetworkWaitStarted = Get-Date
+
+while ($true) {
+    try {
+        $Addresses = [System.Net.Dns]::GetHostAddresses($NetworkHost)
+        if ($Addresses.Count -gt 0) {
+            $WaitedSeconds = [int]((Get-Date) - $NetworkWaitStarted).TotalSeconds
+            "Ag hazir: $NetworkHost cozuldu ($($Addresses[0].IPAddressToString)); bekleme suresi $WaitedSeconds sn." |
+                Out-File -FilePath $WrapperLog -Append -Encoding utf8
+            break
+        }
+    } catch {
+        $ElapsedSeconds = [int]((Get-Date) - $NetworkWaitStarted).TotalSeconds
+        "Ag henuz hazir degil ($ElapsedSeconds sn): $($_.Exception.Message)" |
+            Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    }
+
+    if (((Get-Date) - $NetworkWaitStarted) -ge $NetworkWaitLimit) {
+        "HATA: Ag 15 dakika icinde hazir olmadi; veri pipeline'i baslatilmadi." |
+            Out-File -FilePath $WrapperLog -Append -Encoding utf8
+        Send-ArizaUyarisi "Borsa Analiz Ajani: ag 15 dakika icinde hazir olmadi (Yahoo DNS cozulemedi). Bugun rapor uretilemedi."
+        "=== Calisma bitti (ag zaman asimi): $(Get-Date) ===" |
+            Out-File -FilePath $WrapperLog -Append -Encoding utf8
+        exit 3
+    }
+
+    Start-Sleep -Seconds $NetworkRetrySeconds
+}
+# --- NETWORK_READY_WAIT_END ---
+
 # 1. Veri pipeline'ini calistir (teknik/temel/oruntu JSON bundle uretir) - relative yollarla
 & ".\.venv\Scripts\python.exe" "src\data_pipeline.py" *>> $WrapperLog
 $PipelineExit = $LASTEXITCODE
@@ -34,6 +89,11 @@ $PipelineExit = $LASTEXITCODE
 # ayni raporu ikinci kez gondeririz. Diger sifir disi kodlar da gercek arizadir.
 if ($PipelineExit -ne 0) {
     "HATA: Veri pipeline'i $PipelineExit kodu ile cikti; rapor uretilmeyecek." | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    if ($PipelineExit -eq 2) {
+        Send-ArizaUyarisi "Borsa Analiz Ajani: bozuk bir calisma tespit edildi; bugunun saglam verisi korundu ve ikinci rapor gonderilmedi."
+    } else {
+        Send-ArizaUyarisi "Borsa Analiz Ajani: veri pipeline'i $PipelineExit koduyla cikti. Bugun rapor uretilemedi."
+    }
     "=== Calisma bitti (pipeline hatasi): $(Get-Date) ===" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
     exit $PipelineExit
 }
@@ -43,6 +103,7 @@ $ReportPath = Join-Path $ProjectDir "logs\rapor_$Today.txt"
 
 if (-not (Test-Path $BundlePath)) {
     "HATA: Bundle dosyasi olusmadi: $BundlePath" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    Send-ArizaUyarisi "Borsa Analiz Ajani: veri paketi (bundle) olusmadi. Bugun rapor uretilemedi."
     exit 1
 }
 
