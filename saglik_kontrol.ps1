@@ -49,11 +49,14 @@ if ((Test-Path $ReportPath) -and $TelafiCikis -eq 0) {
 }
 
 Yaz "HATA: Telafi calismasi da rapor uretemedi (cikis kodu $TelafiCikis)."
-# run_daily.ps1 kendi hata yollarinda Telegram'a yaziyor; burada ikinci mesaj
-# ancak process disaridan oldurulduyse (hic kod calismadiysa) gerekli olur.
-if ($TelafiCikis -eq $null -or $TelafiCikis -gt 3) {
-    try {
-        & $PyYolu $AlertYolu "Borsa Analiz Ajani: telafi calismasi da rapor uretemedi (cikis kodu $TelafiCikis). Elle bakilmasi gerekiyor." *>> $WrapperLog
-    } catch { }
+# Cikis kodu 0 olsa bile rapor yoksa haber verilmeli: run_daily.ps1 son adimdaki
+# `claude` cagrisinin basarisini kontrol etmiyor, yani rapor uretilmeden 0 ile
+# cikmasi mumkun. Burada tek olcut dosyanin var olup olmadigidir.
+try {
+    $PyYolu = Join-Path $ProjectDir ".venv\Scripts\python.exe"
+    $AlertYolu = Join-Path $ProjectDir "src\send_alert.py"
+    & $PyYolu $AlertYolu "Borsa Analiz Ajani: telafi calismasi da rapor uretemedi (cikis kodu $TelafiCikis). Elle bakilmasi gerekiyor." *>> $WrapperLog
+} catch {
+    Yaz "UYARI: Ikinci ariza bildirimi gonderilemedi: $($_.Exception.Message)"
 }
 exit 1
