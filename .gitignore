@@ -4,3 +4,5 @@ __pycache__/
 logs/
 config/config.yaml
 *.bak
+config/telegram_state.json
+logs/*.bak

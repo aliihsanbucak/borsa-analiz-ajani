@@ -24,12 +24,15 @@ def main():
     config = config_module.load_config(config_path)
     text = report_path.read_text(encoding="utf-8")
 
-    result = telegram_client.send_report(
+    recipients = config["telegram"]["recipients"]
+    result = telegram_client.broadcast_report(
         config["telegram"]["bot_token"],
-        config["telegram"]["chat_id"],
+        recipients,
         text,
     )
-    print(result)
+    print(f"Rapor {result['delivered']}/{result['recipients']} aliciya gonderildi.")
+    if result["failed_chat_ids"]:
+        print(f"GONDERILEMEYEN chat ID'ler: {', '.join(result['failed_chat_ids'])}")
     sys.exit(0 if result["success"] else 1)
 
 

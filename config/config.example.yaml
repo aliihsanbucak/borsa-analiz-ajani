@@ -33,7 +33,9 @@ symbols:
 
 telegram:
   bot_token: "PASTE_YOUR_BOT_TOKEN_HERE"
-  chat_id: "PASTE_YOUR_CHAT_ID_HERE"
+  chat_id: "PASTE_YOUR_CHAT_ID_HERE"   # sahip
+  # Rapora ek alicilar (elle yonetilir, otomatik abonelik yoktur):
+  extra_chat_ids: []
 
 top_n_report: 30   # gunluk raporda detayli gosterilecek, en yuksek puanli sembol sayisi
 

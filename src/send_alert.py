@@ -30,9 +30,10 @@ def main():
 
     try:
         config = config_module.load_config(config_path)
+        # Ariza uyarisi yalnizca sahibe gider; abonelerin ic isleyisle isi yok.
         result = telegram_client.send_report(
             config["telegram"]["bot_token"],
-            config["telegram"]["chat_id"],
+            config["telegram"]["recipients"][0],
             text,
         )
         print(result)
