@@ -2,8 +2,6 @@
 küresel likidite göstergeleri çeker.
 
 KAPSAM DIŞI (ücretsiz/güvenilir bir API olmadığı için otomatikleştirilemedi):
-- TCMB politika faizi (doğrudan güncel değer için ücretsiz/basit bir API yok
-  - FRED'de de TCMB'nin serisi yok, bu tamamen ABD tarafı için geçerli)
 - KAP özel durum açıklamaları (yapılandırılmış ücretsiz bir API yok)
 
 İki farklı ücretsiz kaynak kullanılıyor:
@@ -37,6 +35,11 @@ FRED_SERIES = {
     "tga": "WTREGEN",                 # Hazine Genel Hesabı / TGA (milyar USD)
     "reverse_repo": "RRPONTSYD",      # Gecelik ters repo (milyar USD)
     "m2": "M2SL",                      # M2 para arzı (milyar USD)
+    # TCMB politika faizi (OECD "Immediate Rates: Central Bank Rates" serisi,
+    # aylık). BIST hisselerinin TL cinsinden WACC/DCF hesabında risksiz oran
+    # olarak kullanılıyor (bkz. dcf.py). Modülün başındaki "TCMB faizi için
+    # ücretsiz API yok" notu bu seriyle geçersiz kaldı.
+    "try_policy_rate": "IRSTCI01TRM156N",
 }
 
 
@@ -96,6 +99,13 @@ def interpret_macro(snapshot: dict) -> list[str]:
     y10 = snapshot.get("us_10y_yield")
     if y10:
         notes.append(f"ABD 10 yıllık tahvil getirisi %{y10['value']:.2f} - risksiz getiri oranının göstergesi, yükselmesi genelde büyüme hisselerinin değerlemesi üzerinde baskı olarak yorumlanır")
+
+    try_rate = snapshot.get("try_policy_rate")
+    if try_rate:
+        notes.append(
+            f"TCMB politika faizi %{try_rate['value']:.2f} ({try_rate['as_of']} itibarıyla) - "
+            "BIST hisselerinin TL cinsinden iskonto oranı (WACC) bu orana dayandırılıyor"
+        )
 
     dxy = snapshot.get("dxy")
     if dxy:

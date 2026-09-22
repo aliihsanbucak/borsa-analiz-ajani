@@ -68,6 +68,9 @@ def build(market: str, identifier: str) -> dict:
     bundle["macro_notes"] = macro.interpret_macro(macro_snapshot)
     y10 = macro_snapshot.get("us_10y_yield")
     risk_free = y10["value"] if y10 and y10.get("value") else None
+    # BIST icin TL risksiz orani (TCMB politika faizi) - gunluk raporla ayni mantik
+    tcmb = macro_snapshot.get("try_policy_rate")
+    try_risk_free = tcmb["value"] if tcmb and tcmb.get("value") else None
 
     fund_info = None
     if market == "crypto":
@@ -75,7 +78,7 @@ def build(market: str, identifier: str) -> dict:
         dominance = data_crypto.fetch_global_dominance()
         result = data_pipeline.process_crypto_symbol(identifier, snapshot, dominance)
     else:
-        result = data_pipeline.process_stock_symbol(identifier, market, risk_free)
+        result = data_pipeline.process_stock_symbol(identifier, market, risk_free, try_risk_free)
 
     bundle["symbol"] = result
     if result.get("error"):

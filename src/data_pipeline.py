@@ -50,7 +50,8 @@ logging.basicConfig(
 logger = logging.getLogger("data_pipeline")
 
 
-def process_stock_symbol(ticker: str, market: str, risk_free_rate_pct: float | None) -> dict:
+def process_stock_symbol(ticker: str, market: str, risk_free_rate_pct: float | None,
+                         try_risk_free_rate_pct: float | None = None) -> dict:
     try:
         bundle = data_bist_us.fetch_symbol_bundle(ticker, market)
         if bundle.get("error"):
@@ -67,7 +68,12 @@ def process_stock_symbol(ticker: str, market: str, risk_free_rate_pct: float | N
 
         # Once gercek bir WACC/DCF hesaplamayi dene (dcf.py); hesaplanamiyorsa
         # (negatif FCF, eksik beta vb.) Lynch'in kaba "adil F/K=buyume" sezgiselene don.
-        dcf_note = dcf.simplified_dcf_note(fund_info, risk_free_rate_pct, is_bist=(market == "bist")) if risk_free_rate_pct else None
+        # Iskonto orani nakit akisiyla AYNI para biriminde olmali: BIST icin TL
+        # (TCMB politika faizi), ABD icin dolar (10 yillik tahvil getirisi).
+        # Bkz. dcf.currency_regime.
+        is_bist = market == "bist"
+        dcf_rate = try_risk_free_rate_pct if is_bist else risk_free_rate_pct
+        dcf_note = dcf.simplified_dcf_note(fund_info, dcf_rate, is_bist=is_bist) if dcf_rate else None
         value_notes = value_investing.value_investing_notes(fund_info, include_fair_value=(dcf_note is None))
         if dcf_note:
             value_notes.append(dcf_note)
@@ -204,17 +210,25 @@ def build_bundle(config_path: str | Path) -> dict:
     if y10:
         risk_free_rate_pct = y10["value"]
 
+    try_risk_free_rate_pct = None
+    tcmb = macro_snapshot.get("try_policy_rate")
+    if tcmb:
+        try_risk_free_rate_pct = tcmb["value"]
+    else:
+        logger.warning("TCMB politika faizi alınamadı - BIST sembolleri için DCF hesaplanmayacak "
+                       "(dolar oranıyla hesaplamak TL nakit akışını sistematik olarak ucuz gösterir)")
+
     bist_list = symbols.get("bist", [])
     us_list = symbols.get("us", [])
     logger.info(f"BIST evreni: {len(bist_list)} sembol, ABD evreni: {len(us_list)} sembol işlenecek")
 
     for ticker in bist_list:
         logger.info(f"İşleniyor: {ticker} (BIST)")
-        results.append(process_stock_symbol(ticker, "bist", risk_free_rate_pct))
+        results.append(process_stock_symbol(ticker, "bist", risk_free_rate_pct, try_risk_free_rate_pct))
 
     for ticker in us_list:
         logger.info(f"İşleniyor: {ticker} (ABD)")
-        results.append(process_stock_symbol(ticker, "us", risk_free_rate_pct))
+        results.append(process_stock_symbol(ticker, "us", risk_free_rate_pct, try_risk_free_rate_pct))
 
     crypto_count = symbols.get("crypto_count", 0)
     if crypto_count > 0:

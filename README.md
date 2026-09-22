@@ -27,7 +27,7 @@ hesaplanır ve formül her raporun başında açıklanır (bkz. "Puanlama nasıl
 - **Geçmiş örüntü karşılaştırması**: sembolün kendi geçmişinde benzer fiyat hareketlerini bulup, ardından tipik olarak ne olduğunu istatistiksel olarak raporlar
 - **Haber duygu analizi**: `news_inbox/` klasörüne bıraktığınız PDF/txt/docx haberleri, günlük çalışma sırasında Claude tarafından okunup teknik/temel bulgularla birlikte yorumlanır
 - **Finansal kalite metrikleri** (hisseler): FCF (serbest nakit akışı) getirisi, Net Borç/FAVÖK, beta, brüt/faaliyet kâr marjı, ciro büyümesi
-- **WACC/DCF tabanlı adil değer aralığı** (bkz. `src/dcf.py`): özsermaye maliyeti CAPM ile (risksiz oran + beta×risk primi), borç maliyeti mümkünse şirketin gerçek faiz gideri/toplam borç oranından hesaplanır, 5 yıllık nakit akışı projeksiyonu + Gordon büyüme modeliyle terminal değer — ayı/baz/boğa senaryoları hem farklı büyüme tavanları hem farklı WACC ile hesaplanır. **Basitleştirilmiş bir modeldir, profesyonel bir DCF'in yerini tutmaz** — tüm varsayımlar raporda açıkça belirtilir (bkz. "WACC/DCF nasıl hesaplanıyor?"). DCF hesaplanamadığında (negatif FCF, eksik veri vb.) Lynch'in daha kaba "adil F/K = büyüme oranı" sezgiseline geri dönülür — hangisinin kullanıldığı raporda belirtilir.
+- **WACC/DCF tabanlı adil değer aralığı** (bkz. `src/dcf.py`): BIST'te tamamen TL, ABD'de tamamen dolar cinsinden; özsermaye maliyeti CAPM ile (risksiz oran + beta×risk primi), borç maliyeti mümkünse şirketin gerçek faiz gideri/toplam borç oranından hesaplanır, 5 yıllık nakit akışı projeksiyonu + Gordon büyüme modeliyle terminal değer — ayı/baz/boğa senaryoları hem farklı büyüme tavanları hem farklı WACC ile hesaplanır. **Basitleştirilmiş bir modeldir, profesyonel bir DCF'in yerini tutmaz** — tüm varsayımlar raporda açıkça belirtilir (bkz. "WACC/DCF nasıl hesaplanıyor?"). DCF hesaplanamadığında (negatif FCF, eksik veri vb.) Lynch'in daha kaba "adil F/K = büyüme oranı" sezgiseline geri dönülür — hangisinin kullanıldığı raporda belirtilir.
 - **Kripto seyrelme riski**: Piyasa Değeri/FDV (tam seyreltilmiş değerleme) oranı — düşükse ileride token unlock'larının satış baskısı yaratabileceğine dair not
 - **Kripto evreni artık elle seçilmiş (curated)**: Daha önce "hangi coinler taranacak" sorusu CoinGecko'nun canlı piyasa değeri sıralamasıyla (`/coins/markets?order=market_cap_desc`) cevaplanıyordu. Bu, gerçek/tanınan kripto paraların yanına stablecoin'leri (`dai`, `usds`, `paypal-usd`), tokenize edilmiş RWA fonlarını (`blackrock-usd-institutional-digital-liquidity-fund`, `tether-gold`, `hashnote-usyc`), borsa token'larını (`okb`, `leo-token`, `whitebit`) ve çok yeni/spekülatif ürünleri (`figure-heloc`, `pump-fun`, `aster-2`, `memecore`) de karıştırabiliyordu — canlı bir çalışmada bu tür girdiler raporun top-30'una kadar girdi ve kullanıcı geri bildirimiyle fark edildi (27 Ağustos 2026). Düzeltme: `symbols.crypto_count` artık `src/data_crypto.py`'deki `CURATED_TOP_COINS` sabit, elle seçilmiş ~50 kripto para listesinden (bitcoin, ethereum, solana, chainlink, aave vb. — genel olarak tanınan projeler) ilk N tanesini kullanıyor; CoinGecko sadece bu sabit listedeki coinlerin fiyat/temel verisini zenginleştirmek için kullanılıyor, HANGİ coinlerin taranacağına karar vermiyor. BIST/ABD evreninin `config.yaml`'da elle seçilmiş olmasıyla aynı prensip.
 - **Kripto veri dayanıklılığı**: CoinGecko'nun ücretsiz erişiminde ara sıra geçici bağlantı sorunları (SSL/zaman aşımı) yaşanabiliyor — bu yüzden tüm CoinGecko çağrıları 3 kez, artan bekleme süresiyle otomatik tekrar deniyor (bkz. `src/data_crypto.py`). **Gerçek kök neden (27 Ağustos 2026'da canlı teşhis edildi)**: bazı günler kripto verisi tamamen gelmiyor çünkü CoinGecko'ya özgü bir sorun değil — bu ağda `api.coingecko.com`, `api.binance.com`, `api.exchange.coinbase.com`, `api.kraken.com` ve `min-api.cryptocompare.com` gibi kripto borsası/veri API'si kategorisindeki TÜM alan adları aynı anda aynı hatayla (SSL: WRONG_VERSION_NUMBER) engelleniyor — muhtemelen ISP/DPI seviyesinde bir engelleme (Türkiye'de kripto borsalarına erişim kısıtlamaları bilinen bir durum). Kripto-dışı finans siteleri (Yahoo Finance, Wikipedia, FRED) bu sırada sorunsuz çalışıyor. Bu yüzden Binance'i "bağımsız bir yedek" olarak eklemek yeterli olmadı — aynı anda o da engellenmiş olabiliyor. Gerçek çözüm: **Yahoo Finance'in kendisi kripto ticker'larını da destekliyor** (örn. `BTC-USD`) ve bu ağda engellenmemiş — bu proje zaten BIST/ABD hisseleri için aynı yfinance altyapısını güvenilir şekilde kullanıyor. Dayanıklılık sırası: CoinGecko → Binance (ucuz, bazen işe yarar) → **Yahoo Finance** (`COIN_ID_TO_YAHOO_TICKER` statik eşlemesi, canlı doğrulanmış ~50 coin). CoinGecko'nun snapshot'ı (piyasa değeri sıralaması, ATH%, FDV) da tamamen erişilemezse, en azından piyasa değeri/güncel fiyat Yahoo'nun `.info`'sundan kurtarılır — CoinGecko kalitesiyle birebir aynı değil ama veri hiç gelmemesinden çok daha iyi.
@@ -40,13 +40,16 @@ hesaplanır ve formül her raporun başında açıklanır (bkz. "Puanlama nasıl
 
 `src/dcf.py` içinde tanımlı, tüm varsayımları açık bir model:
 
-- **Özsermaye maliyeti**: CAPM ile = risksiz oran (ABD 10 yıllık tahvil getirisi) + beta × özsermaye risk primi (sabit %5 varsayım, Damodaran'ın uzun dönemli ABD tahminleriyle uyumlu bir literatür değeri)
-- **Borç maliyeti**: mümkünse şirketin gerçek faiz gideri/toplam borç oranından (yfinance `income_stmt`), yoksa risksiz oran + sabit %2 kredi marjı varsayılır (bu durumda notta belirtilir)
+- **Para birimi rejimi**: İskonto oranı, büyüme varsayımları ve nakit akışları aynı para biriminde olmak zorundadır. ABD hisselerinde her şey dolar (risksiz oran = ABD 10 yıllık tahvil getirisi, terminal büyüme %2,5), BIST hisselerinde her şey TL (risksiz oran = TCMB politika faizi, FRED `IRSTCI01TRM156N`). TL tarafında beklenen uzun dönem enflasyon = politika faizi − varsayılan %5 reel faiz; terminal büyüme buna eşitlenir ve büyüme tavanları da nominalleştirilir, böylece üç senaryonun **reel** büyüme varsayımı iki rejimde aynı kalır.
+- **Özsermaye maliyeti**: CAPM ile = risksiz oran + beta × özsermaye risk primi. ABD'de prim sabit %5 (Damodaran'ın uzun dönemli ABD tahminleriyle uyumlu bir literatür değeri). TL'de prim **reel** %10'dur (olgun piyasa ~%5 + Türkiye ülke riski ~%5) ve reel olarak kurulup enflasyonla şişirilir — nominal orana doğrudan eklenirse %30 enflasyonda risk primi üçte bire erir. Yahoo'nun BIST betaları kullanılamayacak kadar düzensiz olduğu için (THYAO için −0,05) TL rejiminde beta aşağıdan 0,8 ile sınırlanır.
+- **Borç maliyeti**: mümkünse şirketin gerçek faiz gideri/toplam borç oranından (yfinance `income_stmt`), yoksa risksiz oran + sabit %2 kredi marjı varsayılır (bu durumda notta belirtilir). TL rejiminde bu oran politika faizinin altına inemez: kimse TL'yi politika faizinin altına borç vermez, o ucuz borç döviz borcudur ve TL cinsinden kur riski taşır.
 - **WACC**: özsermaye/borç ağırlıklarına göre birleştirilir
 - **Nakit akışı projeksiyonu**: 5 yıl + %2.5 sabit terminal büyüme (Gordon büyüme modeli)
 - **Ayı/Baz/Boğa**: hem büyüme tavanı (Ayı ≤%10, Baz ≤%18, Boğa ≤%28) hem WACC (Ayı: +%1.5, Boğa: -%1.5) senaryo bazında değişir — bu, ilk testte bulunan bir hatayı düzeltmek için gerekliydi (çok yüksek ham büyüme oranlarında üç senaryo aynı tavana sıkışıp özdeş sonuç üretiyordu)
 
-**Önemli sınırlama**: BIST hisseleri için de ABD doları risksiz oranı kullanılıyor (TL cinsinden güvenilir/ücretsiz bir risksiz oran serisi yok) — bu, BIST DCF çıktılarının ABD hisselerine göre daha kaba bir yaklaşım olduğu anlamına gelir, rapor bunu her BIST hissesi için ayrıca not düşer.
+- **İstikrar koruması**: Terminal değer `1/(WACC − g)` ile çarpılır; iki oran birbirine yaklaştığında model küçük varsayım farklarını kat kat büyütür. Aradaki fark `max(%2, WACC×0,15)` altına düşerse DCF **hiç üretilmez**, Lynch sezgiseline dönülür. (Canlı test: bu koruma olmadan TUPRS için 397 TL fiyata karşı 8.748 TL'lik bir "boğa" değeri çıkıyordu.)
+
+**Önemli sınırlama**: TL risksiz oran olarak kısa vadeli TCMB politika faizi kullanılıyor — 10 yıllık TL tahvil getirisinin yerini tam tutmaz (ücretsiz ve güvenilir bir TL 10 yıllık seri bulunamadı) ve aylık yayımlandığı için birkaç ay gecikebilir. Rapor bunu her BIST hissesi için ayrıca not düşer.
 
 ## Puanlama nasıl çalışır?
 
@@ -126,6 +129,35 @@ copy config\config.example.yaml config\config.yaml
 2. Yeni botunuza Telegram'dan herhangi bir mesaj atın (örn. "merhaba").
 3. Tarayıcıda `https://api.telegram.org/bot<TOKEN>/getUpdates` adresini açın, dönen JSON'da `"chat":{"id": ...}` alanındaki sayıyı **chat_id** olarak not edin.
 4. Her ikisini de `config.yaml` içine yazın.
+
+### Telegram'dan anlık sembol sorgusu
+
+`src\listen.py`, yetkili kullanıcıların bota `THYAO`, `AAPL`, `BTC` veya
+`kripto:BTC` gibi bir sembol yazıp tek varlık için analiz istemesini sağlar.
+Ana kullanıcı `telegram.chat_id` alanında, elle izin verilen diğer kullanıcılar
+ise `telegram.extra_chat_ids` listesinde tutulur. Liste dışındaki bir kişi bota
+yazarsa otomatik erişim verilmez; kimliği yalnızca bot sahibine bildirilir.
+
+Dinleyici önce Claude CLI ile rapor üretir. Claude kota sınırına ulaşır, zaman
+aşımına uğrar veya eksik çıktı verirse kurulu Codex CLI salt-okunur modda
+otomatik yedek motor olarak denenir. Her iki motorun çıktısı da Telegram'a
+gönderilmeden önce temel bütünlük kontrolünden geçer.
+
+Dinleyiciyi elle çalıştırmak için:
+
+```powershell
+.\run_listener.ps1
+```
+
+Windows oturumu açıldığında otomatik başlaması için bir kez:
+
+```powershell
+.\dinleyici-kurulum.ps1
+Start-ScheduledTask -TaskName BorsaAnalizAjani-Dinleyici
+```
+
+Dinleyici logları `logs\listener_YYYY-MM.log` ve
+`logs\listener_wrapper.log` dosyalarındadır.
 
 ## Haber dosyası bırakma
 
@@ -226,5 +258,6 @@ UzmanCoin, CoinGlass, KAP, Bulls Yatırım) canlı olarak test edildi:
 ## Kapsam dışı
 
 Alım/satım emri gönderilmez, backtesting motoru yoktur, veritabanı yoktur
-(sadece log dosyası + JSON bundle), çoklu kullanıcı desteği ve web
-dashboard yoktur.
+(sadece log dosyası + JSON bundle), otomatik/kendi kendine abonelik ve web
+dashboard yoktur. Ek Telegram kullanıcıları yalnızca sahibi tarafından
+`extra_chat_ids` listesine elle eklenebilir.
