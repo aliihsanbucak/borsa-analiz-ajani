@@ -44,6 +44,42 @@ try {
 Set-Location $ProjectDir
 $env:Path += ";C:\Program Files\nodejs;$env:APPDATA\npm"
 
+# --- KEEP_AWAKE_BEGIN ---
+# Calisma sirasinda makine uyumasin. 22 Eylul'de gorev 11:04'te basladi, makine
+# 11:11'de "Hibernate from Sleep - Fixed Timeout" ile uyudu; calisan bir pipeline
+# boyle sessizce olur. ES_CONTINUOUS cagiran thread icin gecerli ve script
+# bitene kadar surer. Basarisiz olursa sadece loglanir, akis bozulmaz.
+$KeepAwakeAktif = $false
+try {
+    if (-not ("BorsaUyanikKal" -as [type])) {
+        Add-Type -Namespace "" -Name "BorsaUyanikKal" -MemberDefinition @"
+[System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+public static extern uint SetThreadExecutionState(uint esFlags);
+"@
+    }
+    # ES_CONTINUOUS (0x80000000) | ES_SYSTEM_REQUIRED (0x00000001)
+    $Onceki = [BorsaUyanikKal]::SetThreadExecutionState([uint32]"0x80000001")
+    if ($Onceki -ne 0) {
+        $KeepAwakeAktif = $true
+        "Uyku engeli kuruldu (calisma boyunca makine uyumayacak)." | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    } else {
+        "UYARI: Uyku engeli kurulamadi (SetThreadExecutionState 0 dondu)." | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    }
+} catch {
+    "UYARI: Uyku engeli kurulamadi, devam ediliyor: $($_.Exception.Message)" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+}
+
+function Restore-UykuAyari {
+    if ($KeepAwakeAktif) {
+        try {
+            # ES_CONTINUOUS tek basina: engeli kaldirir.
+            [BorsaUyanikKal]::SetThreadExecutionState([uint32]"0x80000000") | Out-Null
+            "Uyku engeli kaldirildi." | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+        } catch { }
+    }
+}
+# --- KEEP_AWAKE_END ---
+
 # --- NETWORK_READY_WAIT_BEGIN ---
 # StartWhenAvailable, bilgisayar acilir acilmaz gorevi baslatabilir. Windows'un
 # "ag var" sinyali DNS ve internetin gercekten hazir oldugu anlamina gelmez.
@@ -73,12 +109,18 @@ while ($true) {
         Send-ArizaUyarisi "Borsa Analiz Ajani: ag 15 dakika icinde hazir olmadi (Yahoo DNS cozulemedi). Bugun rapor uretilemedi."
         "=== Calisma bitti (ag zaman asimi): $(Get-Date) ===" |
             Out-File -FilePath $WrapperLog -Append -Encoding utf8
+        Restore-UykuAyari
         exit 3
     }
 
     Start-Sleep -Seconds $NetworkRetrySeconds
 }
 # --- NETWORK_READY_WAIT_END ---
+
+# 0. Bota yazan, abone listesinde olmayan kisileri sahibe bildir (abonelik elle
+# yonetilir; bu adim kimseyi listeye eklemez ve basarisiz olsa da rapor akisini
+# bozmaz - betik her zaman 0 ile cikar).
+& ".\.venv\Scripts\python.exe" "src\check_requests.py" *>> $WrapperLog
 
 # 1. Veri pipeline'ini calistir (teknik/temel/oruntu JSON bundle uretir) - relative yollarla
 & ".\.venv\Scripts\python.exe" "src\data_pipeline.py" *>> $WrapperLog
@@ -95,6 +137,7 @@ if ($PipelineExit -ne 0) {
         Send-ArizaUyarisi "Borsa Analiz Ajani: veri pipeline'i $PipelineExit koduyla cikti. Bugun rapor uretilemedi."
     }
     "=== Calisma bitti (pipeline hatasi): $(Get-Date) ===" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    Restore-UykuAyari
     exit $PipelineExit
 }
 
@@ -104,6 +147,7 @@ $ReportPath = Join-Path $ProjectDir "logs\rapor_$Today.txt"
 if (-not (Test-Path $BundlePath)) {
     "HATA: Bundle dosyasi olusmadi: $BundlePath" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
     Send-ArizaUyarisi "Borsa Analiz Ajani: veri paketi (bundle) olusmadi. Bugun rapor uretilemedi."
+    Restore-UykuAyari
     exit 1
 }
 
@@ -144,4 +188,5 @@ Hicbir finansal veri uydurma, sadece JSON bundle ve haber metinlerindeki gercek 
 
 claude -p $Prompt --dangerously-skip-permissions --tools "Bash,Read,Write" --add-dir "$ProjectDir" *>> $WrapperLog
 
+Restore-UykuAyari
 "=== Calisma bitti: $(Get-Date) ===" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
