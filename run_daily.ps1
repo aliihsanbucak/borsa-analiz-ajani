@@ -1,3 +1,8 @@
+# -RaporSadece: veri pipeline'ini atla, bugunun mevcut bundle'i ile raporu yeniden
+# uret ve gonder. Rapor bicimi degistiginde ayni gunu yeniden yazdirmak icin var;
+# pipeline aynen calissa bundle'i bulup "zaten var" diye 2 ile cikardi.
+param([switch]$RaporSadece)
+
 $ErrorActionPreference = "Continue"
 # Script kendi bulundugu klasoru kullanir; makineden makineye tasininca kirilmaz.
 $ProjectDir = $PSScriptRoot
@@ -120,6 +125,7 @@ while ($true) {
 # 0. Bota yazan, abone listesinde olmayan kisileri sahibe bildir (abonelik elle
 # yonetilir; bu adim kimseyi listeye eklemez ve basarisiz olsa da rapor akisini
 # bozmaz - betik her zaman 0 ile cikar).
+if (-not $RaporSadece) {
 & ".\.venv\Scripts\python.exe" "src\check_requests.py" *>> $WrapperLog
 
 # 1. Veri pipeline'ini calistir (teknik/temel/oruntu JSON bundle uretir) - relative yollarla
@@ -139,6 +145,9 @@ if ($PipelineExit -ne 0) {
     "=== Calisma bitti (pipeline hatasi): $(Get-Date) ===" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
     Restore-UykuAyari
     exit $PipelineExit
+    }
+} else {
+    "RaporSadece: veri pipeline'i atlandi, mevcut bundle kullanilacak." | Out-File -FilePath $WrapperLog -Append -Encoding utf8
 }
 
 $BundlePath = Join-Path $ProjectDir "logs\bundle_$Today.json"
