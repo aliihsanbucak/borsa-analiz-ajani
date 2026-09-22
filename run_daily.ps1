@@ -161,17 +161,21 @@ Adimlar:
 4. pending_news doluysa, her haber metnini oku ve ilgili sembol(ler) veya genel piyasa icin kisa bir duygu degerlendirmesi (olumlu/olumsuz/notr) cikar - metinde GERCEKTEN yazanlara dayan, bilgi uydurma.
 4b. market_news doluysa, listedeki basliklari tara ve HANGI baslik hangi symbols listesindeki sembolle (sirket adi, ticker, veya kripto adi ge cerek) ilgili gorunuyor tespit et. Bir sembolle iliskili bir baslik bulursan, o sembolun paragrafinda TEK CUMLE ile bahset (orn. \"Bugun [kaynak]'ta cikan bir haberde ... deniyor\"). BU HABER BASLIKLARI DOGRULANMAMIS/HAM VERIDIR (kullanicinin kendi kaynak hiyerarsisinde 'Seviye 4 - Haber Kaynagi' = sadece kesif amacli): baslikta yazani GERCEKMIS gibi sunma, 'su haber basligi gorulmus, dogrulanmadi' ruhuyla aktar, birincil kaynaktan (KAP/SEC/sirket aciklamasi) teyit edilmedigini ima et, o habere dayanarak yeni bir yatirim gorusu OLUSTURMA. Ilgisiz basliklari (rapordaki hicbir sembolle alakasiz genel haberler) atla, zorla baglama.
 5. TEK bir Turkce gunluk ozet yaz. Bu ozet ham not listesi degil, AKICI VE ACIKLAYICI bir metin olmali:
-   - symbols listesindeki HER sembol icin (en fazla 30 tane) 5-7 cumlelik bir paragraf yaz - listede kac sembol varsa hepsini yaz, atlama.
+   - ZORUNLU VE PAZARLIKSIZ: symbols listesindeki HER sembol icin ayri, 5-7 cumlelik bir paragraf yaz. Listede kac sembol varsa (en fazla 30) o kadar paragraf olacak - atlama, ozetleme, 'birkac ismi acalim' deyip gerisini tabloya sikistirma. 18-22 Eylul 2026 arasinda tam bu oldu: 30 sembol tek satirlik bir tabloya indi ve yalnizca 8'i aciklandi; raporun asil degeri olan kisim kayboldu. Ozet tablo EKLEYEBILIRSIN ama paragraflarin YERINE degil, ONLARA EK olarak.
+   - Her sembol paragrafi kendi basligiyla baslasin ve bicim sabit olsun (otomatik denetim bunu sayiyor):
+     N) SEMBOL - SIRKET ADI | Puan 0,XXXX
+     Ornek: '1) AKBNK.IS - AKBANK (Financial Services) | Puan 0,9468'
    - Teknik terimi kullandiginda (RSI, MACD, Bollinger, F/K, PEG, Graham skoru, Dow trendi, FCF getirisi, Net Borc/FAVOK, beta vb.) parantez icinde KISACA ne anlama geldigini de acikla - okuyucu bu terimleri bilmiyor olabilir. Ornek: 'RSI 74 (bu gosterge fiyatin ne kadar hizli yukseldigini olcer; 70 uzeri "asiri alim" sayilir, yani fiyat kisa surede cok hizli yukselmis olabilir ve bir soluklanma/duzeltme ihtimali artar)'.
    - Sadece rakam siralama - HIKAYE ANLAT: bu gostergeler, gecmis oruntu bulgusu ve varsa haber duygusu bir araya geldiginde, onumuzdeki gunler/haftalar icin ortaya nasil bir tablo cikiyor, bunu birlestirerek anlat.
    - Klasik yatirim literaturunden (Graham/Dodd'un deger yatirimi kriterleri, Lynch'in "One Up On Wall Street" ve "Beating the Street" kitaplarindaki PEG orani/buyume kategorileri/adil deger araligi, Murphy'nin Dow trend teorisi, Nison'in mum formasyonlari, Elder'in cok zaman dilimi teyidi) esinlenerek, 'bu tur bir durumda bu teoriye gore genelde ne beklenir' tarzinda EGITICI TUYOLAR ver - yani sadece veri sunma, o verinin klasik analiz cercevelerinde ne ifade ettigini yorumla.
    - Hisseler icin (kriptoda uygulanamaz), Lynch'in "Beating the Street" kitabinda anlattigi "iki dakikalik hikaye" pratigini uygula: sirket/sektor bilgisi, Lynch kategorisi ve buyume orani, PEG/degerleme, adil deger araligi (varsa) ve varsa iceriden sahiplik notunu kisa, tutarli bir "yatirim hikayesi" cumlesinde birlestir (ne is yapiyor, buyume/deger acisindan neden dikkat cekici ya da degil, ana risk ne olabilir) - bunu da egitici bir gozlem olarak sun, tavsiye olarak degil.
    - Fundamental_notes'ta finansal saglik/kalite verisi varsa (FCF getirisi, Net Borc/FAVOK, beta, brut/faaliyet marji, ciro buyumesi) bunlari da hikayeye kat - orn. yuksek kaldirac (Net Borc/FAVOK) veya negatif FCF varsa bunu bir dikkat noktasi olarak belirt.
    - ZORUNLU: fundamental_notes icinde "DCF tabanli adil deger araligi" VEYA "Basitlestirilmis adil deger araligi" ile baslayan bir not varsa (Ayi/Baz/Boga fiyatlarini icerir), bu MUTLAKA paragrafa dahil edilmeli - atlanmamali, kisaltilmamali. "DCF tabanli" olanlar gercek bir WACC (CAPM ile hesaplanmis) + 5 yillik nakit akisi projeksiyonuna dayanir - varsayimlari (WACC yuzdesi, ozsermaye/borc maliyeti) da belirt. "Basitlestirilmis" (Lynch sezgiseli) olanlar ise DCF hesaplanamadiginda (orn. negatif FCF) kullanilan daha kaba bir yedek yontemdir - hangisi kullanilmissa onu dogru sekilde adlandir, ikisini birbirine karistirma.
-   - HER sembol paragrafinin SONUNA, o sembole ozel TEK CUMLELIK bir "Bu tabloyu ne bozar?" notu ekle - yani mevcut verideki en belirgin zayif nokta veya kirilganlik neyse (orn. dusuk Graham skoru, yuksek kaldirac, kucuk oruntu ornek sayisi, asiri alim/satim, negatif FCF, token unlock riski) onu tek cumleyle ozetle. Bu bir risk/tez-bozucu gozlemidir, tavsiye degildir.
+   - HER sembol paragrafinin SONUNA, o sembole ozel TEK CUMLELIK bir not ekle ve satiri TAM OLARAK "Bu tabloyu ne bozar?" ibaresiyle basla (otomatik denetim bu ibareyi sayarak kac sembolun islendigini olcuyor; ibareyi degistirirsen rapor eksik sayilir) - yani mevcut verideki en belirgin zayif nokta veya kirilganlik neyse (orn. dusuk Graham skoru, yuksek kaldirac, kucuk oruntu ornek sayisi, asiri alim/satim, negatif FCF, token unlock riski) onu tek cumleyle ozetle. Bu bir risk/tez-bozucu gozlemidir, tavsiye degildir.
    - Olasilik dili kullanabilirsin ('... ihtimalini artirir', '... isareti olarak yorumlanabilir', 'gecmiste boyle durumlarda genelde ...'), ama KESIN ONGORU veya 'su olacak' gibi kesinlik ifade eden cumleler kurma.
    - HICBIR SEKILDE 'al/sat/tut' tavsiyesi verme (asla 'almalisin/satmalisin/tutmalisin' deme) - sadece egitici gozlem ve olasilik sun.
    Ozetin en sonuna tam olarak su satiri ekle: 'Bu mesaj yalnizca bilgilendirme ve egitim amaclidir, yatirim tavsiyesi degildir.'
+5d. 18-22 Eylul raporlarinda ortaya cikan su bolumler ISE YARIYOR, onlari KORU ve uygun oldugunda yaz - ama yine sembol paragraflarinin YERINE degil, EK olarak: (a) "VERININ YALAN SOYLEDIGI YERLER" - puanlama formulunun bozuk/yanlis okudugu veriler (negatif ozkaynak, sifir PD/DD, tek seferlik kardan sismis PEG, az ornekli oruntu istatistigi, sadece birkac kriteri olculebildigi icin kusursuz gorunen Graham skoru); (b) gunun tek cumlelik ana bulgusu; (c) dune gore listeye girenler/cikanlar ve bunun neden "kotuleme" anlamina gelmedigi; (d) puan ile fiyat yonu celisiyorsa bunun nedeni. Bu bolumler raporun en degerli kismi olabilir, cunku okuyucuyu veriye koru korune guvenmekten korurlar.
 5c. Ana top-30 bolumunden SONRA, raporun ayri bir bolumu olarak "KARSIT YATIRIM ADAYLARI" baslikli bir kisim yaz. Bu bolum de MEKANIK bir taramadir, symbols listesiyle AYNI evrenle sinirli DEGILDIR (BIST tarafinda mevcut BIST100 listesiyle sinirli, ABD tarafinda ise ABD top-30'un disina cikip S&P 500'un tamamini da tarar) ve SENIN secimin degildir:
    - Bolume, contrarian_book_citation alanindaki kaynagi (kitap adi/yazari) ve contrarian_rule_explanation alanindaki kurali TEK SEFER, bolumun basinda kisaca aciklayarak basla (52 haftalik zirveden en az %50 dusus + fiyat/piyasa degeri esikleri + F/K, F/DD, F/SNA, F/S oranlarindan en az ikisi).
    - contrarian_candidates BOSSA: "Bugun bu kurallara uyan bir aday bulunamadi" seklinde durumu oldugu gibi belirt, uydurma veya zorlama.
@@ -179,6 +183,8 @@ Adimlar:
    - Bolumun EN SONUNA, TEK SEFER (her aday icin degil), kitaptaki risk yonetimi kurallarini genel egitici bir not olarak ekle: tek pozisyon portfoyun en fazla %5'i, tek sektor en fazla %20'si, zarar durumunda %25 stop-loss, kardaki pozisyonlarda %30 sonrasi iz-suren stop gibi kurallarin PRENSIP olarak boyle calistigini anlat - bunu da tavsiye degil, kitaptan aktarilan egitici bilgi olarak sun.
    - Bu bolumde de "al/sat/tut" ifadesi KESINLIKLE kullanma.
 6. Bu ozeti '$ReportPath' dosyasina yaz.
+6b. GONDERMEDEN ONCE kendini denetle: '$ProjectDir\.venv\Scripts\python.exe' '$ProjectDir\src
+apor_denetle.py' '$BundlePath' '$ReportPath' komutunu calistir. Cikis kodu 1 ise raporda eksik sembol var demektir - eksik sembollerin paragraflarini yaz, dosyayi guncelle ve denetimi tekrar calistir. Denetim 0 donene kadar gondermeye gecme (en fazla 3 deneme; ucunde de basaramazsan yine gonder, asagidaki PowerShell denetimi durumu sahibe bildirecek).
 7. '$ProjectDir\.venv\Scripts\python.exe' '$ProjectDir\src\send_text.py' '$ReportPath' komutunu calistirarak Telegram'a gonder.
 8. Gonderim basariliysa VE 4. adimda islenen haber dosyalari varsa: '$ProjectDir\.venv\Scripts\python.exe' '$ProjectDir\src\archive_news.py' <dosya_adi1> <dosya_adi2> ... komutuyla arsivle (pending_news anahtarlarindaki tam dosya adlarini kullan).
 9. symbols listesindeki bir sembolde error alani doluysa (normalde olmamali, zaten hatali semboller listeye girmeden filtrelendi) o sembolu atla, tum ozeti durdurma.
@@ -187,6 +193,20 @@ Hicbir finansal veri uydurma, sadece JSON bundle ve haber metinlerindeki gercek 
 "@
 
 claude -p $Prompt --dangerously-skip-permissions --tools "Bash,Read,Write" --add-dir "$ProjectDir" *>> $WrapperLog
+
+# Prompt her sembole ayri paragraf yazilmasini sart kosuyor, ama 18-22 Eylul 2026
+# arasinda bu sessizce terk edildi: 30 sembol tek satirlik bir tabloya indi, sadece
+# 8'i aciklandi ve kimse fark etmedi. Rapor zaten gonderildi; burada amac engellemek
+# degil, bir daha sessiz kalmamasi.
+if (Test-Path $ReportPath) {
+    & ".\.venv\Scripts\python.exe" "src\rapor_denetle.py" $BundlePath $ReportPath *>> $WrapperLog
+    if ($LASTEXITCODE -ne 0) {
+        Send-ArizaUyarisi "Borsa Analiz Ajani: rapor gonderildi ama eksik - sembollerin bir kismi kendi paragrafini almamis (detay wrapper logunda). Gecmiste bu sekilde 30 sembol tek satira inmisti."
+    }
+} else {
+    "HATA: Rapor dosyasi olusmadi: $ReportPath" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    Send-ArizaUyarisi "Borsa Analiz Ajani: veri paketi olustu ama rapor dosyasi yazilmadi; Telegram'a bugun rapor gitmedi."
+}
 
 Restore-UykuAyari
 "=== Calisma bitti: $(Get-Date) ===" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
