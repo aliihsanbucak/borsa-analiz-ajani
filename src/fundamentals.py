@@ -35,6 +35,14 @@ def interpret_fundamentals(info: dict) -> list[str]:
     if not info:
         return notes
 
+    # Fiyat ve finansal tablo para birimi farkli olan sirketlerde oranlar
+    # data_bist_us._normalize_currency tarafindan yeniden hesaplaniyor; okuyucu
+    # bunu bilmeli, cunku ayni sirket icin baska kaynaklarda (ham Yahoo verisi
+    # dahil) farkli bir PD/DD gorebilir.
+    currency_note = info.get("currency_note")
+    if currency_note:
+        notes.append(currency_note)
+
     pe = info.get("trailingPE")
     if pe is not None:
         if pe < 10:

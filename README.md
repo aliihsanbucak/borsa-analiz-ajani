@@ -17,6 +17,11 @@ hesaplanır ve formül her raporun başında açıklanır (bkz. "Puanlama nasıl
 - **Trend analizi** (John Murphy — *Technical Analysis of the Financial Markets*): Dow Teorisi tabanlı trend yönü, destek/direnç seviyeleri
 - **Çoklu zaman dilimi teyidi** (Alexander Elder — *Trading for a Living*, "üç ekran" mantığı): haftalık trend + günlük RSI karşılaştırması
 - **Temel analiz**: F/K, PD/DD, temettü verimi, kâr marjı, borç/özkaynak (sadece hisseler)
+  - Fiyatı TRY, finansal tabloları USD/EUR cinsinden olan şirketlerde (THYAO.IS, ENKAI.IS, TAVHL.IS)
+    Yahoo'nun hazır oranları iki para birimini karıştırabiliyor — THYAO için PD/DD 18,76 görünüyordu,
+    gerçeği ~0,38. Bu oranlar `data_bist_us._normalize_currency` içinde, her alan finansal tablolardan
+    bağımsız bir referansla ölçek testine sokularak yeniden hesaplanıyor; karar verilemeyen alan
+    yayımlanmıyor.
 - **Değer yatırımı kriterleri** (Benjamin Graham & David Dodd — *Security Analysis*, Graham — *The Intelligent Investor*): "defansif yatırımcı" skoru (cari oran, borçluluk, kazanç istikrarı, temettü, F/K, F/K×PD/DD)
 - **PEG oranı, büyüme kategorisi, içeriden sahiplik ve "iki dakikalık hikaye"** (Peter Lynch — *One Up On Wall Street*, *Beating the Street*)
 - **Geçmiş örüntü karşılaştırması**: sembolün kendi geçmişinde benzer fiyat hareketlerini bulup, ardından tipik olarak ne olduğunu istatistiksel olarak raporlar
