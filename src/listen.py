@@ -14,6 +14,7 @@ surece bir kilit dosyasi tutar; check_requests kilidi gorunce mesajlara hic
 dokunmaz (yoksa gunluk rapor sirasinda gelen bir sorguyu yutardi).
 """
 import json
+import re
 import os
 import shutil
 import subprocess
@@ -56,7 +57,13 @@ _last_query_at: dict[str, float] = {}
 _pending_choice: dict[str, list[dict]] = {}
 
 
+# Ag hatalarinda requests istisnasi Telegram URL'sini, yani bot token'ini da
+# iceriyor; 23 Eylul'de token bu yolla dinleyici loguna duz yazilmisti.
+_TOKEN_RE = re.compile(r"bot\d+:[A-Za-z0-9_-]+")
+
+
 def log(message: str) -> None:
+    message = _TOKEN_RE.sub("bot<gizli>", message)
     line = f"{datetime.now():%Y-%m-%d %H:%M:%S} {message}"
     print(line, flush=True)
     try:
@@ -247,7 +254,10 @@ def run_analysis(candidate: dict) -> tuple[bool, str]:
         encoding="utf-8", errors="replace", timeout=300,
     )
     if proc.returncode != 0:
-        log(f"Analiz basarisiz ({label}): {proc.stdout.strip()} {proc.stderr.strip()}")
+        # Cikis kodu olmadan bos satir teshis edilemiyordu (23 Eylul: konsolsuz kalan
+        # dinleyicinin alt surecleri 1 sn'de ciktisiz dusuyordu).
+        log(f"Analiz basarisiz ({label}): rc={proc.returncode} "
+            f"stdout={proc.stdout.strip()[-400:]} stderr={proc.stderr.strip()[-400:]}")
         return False, (f"{label} icin veri cekilemedi. Sembolu kontrol edip tekrar dener misin? "
                        "(Yahoo/CoinGecko gecici olarak da cevap vermemis olabilir.)")
 
