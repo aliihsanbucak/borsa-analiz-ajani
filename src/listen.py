@@ -118,6 +118,14 @@ Adimlar:
    - macro_notes'tan SADECE bu sembolu ilgilendiren 1-2 cumle kullan (orn. yuksek faiz borclu bir sirketi, guclu dolar gelisen piyasa hissesini nasil etkiler).
    - related_news doluysa, baslik(lar)i TEK cumleyle aktar. Bu basliklar DOGRULANMAMIS ham veridir: gercekmis gibi sunma, birincil kaynaktan (KAP/SEC/sirket aciklamasi) teyit edilmedigini ima et, habere dayanarak yeni bir gorus OLUSTURMA. related_news bossa "bu sembolle ilgili son 24 saatte takip edilen akislarda bir baslik cikmadi" de.
    - Klasik yatirim literaturunden (Graham/Dodd, Lynch, Murphy'nin Dow trend teorisi, Nison'in mum formasyonlari, Elder'in cok zaman dilimi teyidi) esinlenerek EGITICI tuyolar ver: bu tur bir tabloda o teoriye gore genelde ne beklenir.
+2b. Paragraflardan SONRA, ayri bir bolum olarak tam su basligi yaz: "DESTEK VE DIRENC SEVIYELERI". Kaynak: symbol.support_resistance (bos/null ise bolumu yine ac ve "yeterli fiyat gecmisi olmadigi icin seviye hesaplanamadi" yaz, seviye UYDURMA).
+   - Once tek cumleyle destek/direncin ne oldugunu acikla (destek: fiyatin gecmiste dusmeyi durdurup geri dondugu bolge; direnc: yukselisin tikandigi bolge) ve seviyelerin nasil bulundugunu 'method' alanina dayanarak kisaca anlat.
+   - Sonra seviyeleri madde madde, fiyattan uzaga dogru sirala. Her madde: seviye (fiyat biriminde, 2 ondalik), guncel fiyata uzaklik (distance_pct, yuzde olarak) ve touches (o bolgenin kac kez tepe/dip verdigi; 1 = tek sefer, zayif; 3+ = cok test edilmis, daha belirgin). Bicim:
+     Direnc 1: 305,00 (fiyatin %1,3 uzerinde, 2 kez test edildi)
+     Destek 1: 292,40 (fiyatin %2,9 altinda, 3 kez test edildi)
+   - resistances veya supports bos ise bunu acikca yaz (orn. 'fiyat 1 yillik zirvesinde, ustunde gecmis bir direnc yok').
+   - Ayrica 52 haftalik zirve/dip (high_52w/low_52w) ve dynamic icindeki SMA50/SMA200'u "hareketli/ucdeger seviyeler" olarak ayri iki-uc madde halinde ver.
+   - Bolumu Murphy'nin rol degisimi ilkesiyle bitir (kirilan direnc sonradan destek, kirilan destek sonradan direnc olarak calisma egilimindedir) ve bu seviyelerin kesin donus noktalari DEGIL, gecmiste tepki gelmis bolgeler oldugunu belirt.
 3. Analizin sonuna TEK CUMLELIK bir "Bu tabloyu ne bozar?" notu ekle - mevcut verideki en belirgin zayif nokta/kirilganlik.
 4. Olasilik dili kullan ('... ihtimalini artirir', '... olarak yorumlanabilir'). KESIN ONGORU kurma. HICBIR SEKILDE 'al/sat/tut' tavsiyesi verme.
 5. En sona tam olarak su satiri ekle: 'Bu mesaj yalnizca bilgilendirme ve egitim amaclidir, yatirim tavsiyesi degildir.'

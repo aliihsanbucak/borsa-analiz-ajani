@@ -60,6 +60,62 @@ def support_resistance_notes(close: pd.Series, lookback: int = 90) -> list[str]:
     return notes
 
 
+def _cluster_levels(points: list[float], tolerance: float) -> list[dict]:
+    """Birbirine %tolerance'tan yakin swing noktalarini tek seviyede toplar.
+    Ayni bolgeye kac kez donuldugu (touches) seviyenin gucunun kaba olcusudur."""
+    clusters: list[list[float]] = []
+    for p in sorted(points):
+        if clusters and p <= clusters[-1][0] * (1 + tolerance):
+            clusters[-1].append(p)
+        else:
+            clusters.append([p])
+    return [{"level": round(sum(c) / len(c), 4), "touches": len(c)} for c in clusters]
+
+
+def support_resistance_levels(df: pd.DataFrame, max_levels: int = 3, order: int = 5,
+                              tolerance: float = 0.015, min_gap: float = 0.005) -> dict | None:
+    """Tek sembol raporunun destek/direnc bolumu icin yapilandirilmis seviyeler.
+
+    Son bir yilin gunluk tepe/dip swing noktalari (varsa High/Low, yoksa Close)
+    %1,5 icinde kumelenir; fiyatin ustundekiler direnc, altindakiler destek olur.
+    Fiyata %0,5'ten yakin seviyeler atlanir - o kadar yakin bir seviye bilgi
+    tasimaz (THYAO'da %0,2 uzaktaki "destek" boyleydi). 52 haftalik zirve/dip ve
+    SMA50/SMA200 ayrica "dinamik/ucdeger" seviyeler olarak verilir.
+    """
+    close = df["Close"].dropna()
+    if len(close) < 2 * order + 5:
+        return None
+    last = float(close.iloc[-1])
+    high = df["High"].dropna() if "High" in df else close
+    low = df["Low"].dropna() if "Low" in df else close
+
+    swing_h, _ = swing_highs_lows(high, order)
+    _, swing_l = swing_highs_lows(low, order)
+    levels = _cluster_levels([v for _, v in swing_h] + [v for _, v in swing_l], tolerance)
+
+    def with_distance(item: dict) -> dict:
+        return {**item, "distance_pct": round((item["level"] / last - 1) * 100, 2)}
+
+    resistances = sorted((l for l in levels if l["level"] > last * (1 + min_gap)), key=lambda l: l["level"])
+    supports = sorted((l for l in levels if l["level"] < last * (1 - min_gap)), key=lambda l: -l["level"])
+
+    dynamic = {}
+    for window in (50, 200):
+        if len(close) >= window:
+            dynamic[f"sma_{window}"] = round(float(close.tail(window).mean()), 4)
+
+    return {
+        "last_close": round(last, 4),
+        "method": ("Son 1 yilin gunluk tepe/dip swing noktalari (her iki yanda 5 gun), "
+                   "%1,5 icinde kumelenmis; touches = o bolgenin kac kez tepe/dip verdigi"),
+        "resistances": [with_distance(l) for l in resistances[:max_levels]],
+        "supports": [with_distance(l) for l in supports[:max_levels]],
+        "high_52w": with_distance({"level": round(float(high.max()), 4)}),
+        "low_52w": with_distance({"level": round(float(low.min()), 4)}),
+        "dynamic": {k: with_distance({"level": v}) for k, v in dynamic.items()},
+    }
+
+
 def multi_timeframe_note(df: pd.DataFrame, daily_rsi_value: float) -> str | None:
     """Elder'ın 'üç ekran' mantığından esinlenerek haftalık trend + günlük RSI kıyaslaması."""
     close = df["Close"].dropna()

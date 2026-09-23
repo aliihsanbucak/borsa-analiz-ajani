@@ -96,6 +96,7 @@ def process_stock_symbol(ticker: str, market: str, risk_free_rate_pct: float | N
             "values": tech["values"],
             "score": score,
             "contrarian": contrarian_result,
+            "support_resistance": trend_analysis.support_resistance_levels(history_1y),
         }
     except Exception as e:
         logger.exception(f"{ticker} işlenirken hata oluştu")
@@ -138,6 +139,7 @@ def process_crypto_symbol(coin_id: str, snapshot: dict, dominance: dict) -> dict
             "pattern_note": pattern_note,
             "values": tech["values"],
             "score": score,
+            "support_resistance": trend_analysis.support_resistance_levels(history_1y),
         }
     except Exception as e:
         logger.exception(f"{coin_id} işlenirken hata oluştu")
