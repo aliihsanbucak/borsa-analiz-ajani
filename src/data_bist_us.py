@@ -9,6 +9,9 @@ import io
 import requests
 import yfinance as yf
 import pandas as pd
+import logging
+
+logger = logging.getLogger("data_bist_us")
 
 SP500_WIKIPEDIA_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 
@@ -69,9 +72,31 @@ def fetch_history(ticker: str, period: str = "1y", interval: str = "1d") -> pd.D
         df = yf.Ticker(ticker).history(period=period, interval=interval)
         if df is None or df.empty:
             return None
+        if interval == "1d":
+            _fill_missing_last_close(yf.Ticker(ticker), df, ticker)
         return df
     except Exception:
         return None
+
+
+def _fill_missing_last_close(yf_ticker, df: pd.DataFrame, ticker: str) -> None:
+    """23 Eylul 2026: Yahoo ABD hisselerinin 22 Eylul gunluk barini Open/High/Low/
+    Volume dolu ama Close=NaN verdi; dropna o satiri atinca rapor bir seans eski
+    fiyatla yazildi (AVGO 362,66 yerine ~364,5). O gunun saatlik barlarindaki son
+    kapanisla doldurulur; doldurulamazsa loglanir, fiyat uydurulmaz."""
+    if "Close" not in df or not pd.isna(df["Close"].iloc[-1]):
+        return
+    last_day = df.index[-1].date()
+    try:
+        hourly = yf_ticker.history(period="5d", interval="1h")["Close"].dropna()
+        same_day = hourly[[ts.date() == last_day for ts in hourly.index]]
+    except Exception:
+        same_day = pd.Series(dtype=float)
+    if same_day.empty:
+        logger.warning(f"{ticker}: {last_day} gunluk kapanisi Yahoo'da bos ve saatlik veriyle doldurulamadi")
+        return
+    df.loc[df.index[-1], "Close"] = float(same_day.iloc[-1])
+    logger.info(f"{ticker}: {last_day} gunluk kapanisi bos geldi, saatlik son kapanisla dolduruldu ({same_day.iloc[-1]:.2f})")
 
 
 _FX_CACHE: dict[str, float | None] = {}
