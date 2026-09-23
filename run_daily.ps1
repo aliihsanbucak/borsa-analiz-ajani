@@ -201,7 +201,29 @@ apor_denetle.py' '$BundlePath' '$ReportPath' komutunu calistir. Cikis kodu 1 ise
 Hicbir finansal veri uydurma, sadece JSON bundle ve haber metinlerindeki gercek bilgiyi kullan.
 "@
 
-claude -p $Prompt --dangerously-skip-permissions --tools "Bash,Read,Write" --add-dir "$ProjectDir" *>> $WrapperLog
+# 23 Eylul 2026: bundle 11:31:47'de yazildi, makine 11:31:53'te Modern Standby'a
+# girdi ve ag kesildi; claude "ENOTFOUND" ile pes etti, rapor gitmedi. Uyku engeli
+# (ES_SYSTEM_REQUIRED) ekran kapaninca girilen standby'i durdurmuyor. Rapor dosyasi
+# gonderimden ONCE yazildigi icin dosya yoksa Telegram'a hicbir sey gitmemistir -
+# ag geri gelince yeniden denemek cift rapor riski tasimaz.
+$ClaudeDenemeSayisi = 3
+for ($Deneme = 1; $Deneme -le $ClaudeDenemeSayisi; $Deneme++) {
+    "Claude rapor cagrisi, deneme $Deneme/${ClaudeDenemeSayisi}: $(Get-Date)" | Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    claude -p $Prompt --dangerously-skip-permissions --tools "Bash,Read,Write" --add-dir "$ProjectDir" *>> $WrapperLog
+    if ((Test-Path $ReportPath) -or ($Deneme -eq $ClaudeDenemeSayisi)) { break }
+
+    # API adresi cozulene kadar bekle (en fazla 30 dk), sonra tekrar dene.
+    $ApiBeklemeBasi = Get-Date
+    while (((Get-Date) - $ApiBeklemeBasi).TotalMinutes -lt 30) {
+        try {
+            if (([System.Net.Dns]::GetHostAddresses("api.anthropic.com")).Count -gt 0) { break }
+        } catch { }
+        Start-Sleep -Seconds 30
+    }
+    "Rapor olusmadi; ag bekleme $([int]((Get-Date) - $ApiBeklemeBasi).TotalSeconds) sn surdu, yeniden deneniyor." |
+        Out-File -FilePath $WrapperLog -Append -Encoding utf8
+    Start-Sleep -Seconds 30
+}
 
 # Prompt her sembole ayri paragraf yazilmasini sart kosuyor, ama 18-22 Eylul 2026
 # arasinda bu sessizce terk edildi: 30 sembol tek satirlik bir tabloya indi, sadece
